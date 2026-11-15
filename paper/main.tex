@@ -127,6 +127,13 @@ Gemini (favor non-AI) & 0.49 & 0.29--0.67 & 0.52 & 47\% / 43\% & 0.52 & 0.25--0.
 \end{tabular}
 \end{table}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.65\linewidth]{run-blind-only/labeler_confidence_distribution.pdf}
+\caption{Confidence the human annotator reported for each blind label ($n=80$; 34 labeled not AI-assisted, 46 labeled AI-assisted). No label was given below 50\% confidence, and AI-assisted labels were given with higher confidence than non-AI labels.}
+\label{fig:blind-confidence}
+\end{figure}
+
 The informed labels agree with provenance more closely (AUC 0.77) but cannot be read as detection from text, since the commit trailers that define provenance were on screen. Only 36 of the 81 informed specifications have direct or no evidence; the rest have tool evidence. The informed set serves as a consistency check: even on files where a human reader with metadata identifies AI involvement in 95\% of direct-evidence cases, the LLM judges score 0.43--0.49, no better than on the blind set.
 
 \subsection{Text Classifiers (RQ3)}
@@ -159,9 +166,30 @@ Gemini (favor non-AI) & 0.46 & 0.37--0.55 & 0.43 & 0.61 & 0.47--0.74 & 0.55 \\
 \end{table}
 
 \subsection{Classifiers Trained on Human and LLM Labels}
-Classifiers can also be trained to reproduce a labeler rather than provenance. Trained on an earlier set of LLM-assisted labels for the same 335 specifications (Gemini labels revised by hand for low-confidence cases; 203 non-AI and 132 AI) with a repository-disjoint split, logistic regression on the content features reached 0.82 accuracy, 0.77 F1 and 0.86 ROC AUC on 67 held-out specifications, against a 0.66 majority-class baseline, and a random forest reached an AUC of 0.89. Specifications labeled AI-assisted tended to be longer, more deeply nested and list-heavy. These scores measure how well the classifiers reproduce the judge; given RQ1, they say little about authorship.
+Classifiers can also be trained to reproduce a labeler rather than provenance. Trained on an earlier set of LLM-assisted labels for the same 335 specifications (Gemini labels revised by hand for low-confidence cases; 203 non-AI and 132 AI) with a repository-disjoint split, logistic regression on the content features reached 0.82 accuracy, 0.77 F1 and 0.86 ROC AUC on 67 held-out specifications, against a 0.66 majority-class baseline, and a random forest reached an AUC of 0.89. Specifications labeled AI-assisted tended to be longer, more deeply nested and list-heavy. Trained on the Claude rubric labels (249 non-AI and 86 AI; 268 training and 67 held-out specifications, 17 of them labeled AI-assisted), the classifiers reproduce the judge about as well (Figure~\ref{fig:claude-label-classifiers}). Logistic regression on the content features reached 0.85 accuracy, 0.69 F1 and 0.89 ROC AUC, the random forest 0.88 accuracy, 0.73 F1 and 0.90 AUC, and logistic regression on character $n$-grams with the word count 0.87 accuracy, 0.73 F1 and 0.94 AUC, against a 0.75 majority-class baseline. Naive Bayes ranked files reasonably (AUC 0.81) but predicted non-AI for every test file. The random forest relies most on length and requirement-format counts such as scenario blocks, Gherkin steps and \texttt{SHALL} statements. For both judges, these scores measure how well the classifiers reproduce the judge; given RQ1, they say little about authorship.
 
-Trained on the human labels instead, the classifiers learned no usable signal. With 16--33 held-out specifications per split, every AUC interval was wide and most included 0.5, and Naive Bayes predicted AI-assisted for every test file. At this scale the human labels support evaluation, not training.
+\begin{figure}[ht]
+\centering
+\begin{minipage}[t]{0.52\linewidth}
+\centering
+\includegraphics[width=\linewidth]{run-claude/roc_curves.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.45\linewidth}
+\centering
+\includegraphics[width=\linewidth]{run-claude/random_forest_top10_importances.pdf}
+\end{minipage}
+\caption{Classifiers trained to reproduce the Claude rubric labels (repository-disjoint split; 268 training and 67 held-out specifications, 17 labeled AI-assisted). Left: ROC curves on the held-out split. Right: the ten most important content features of the random forest. High agreement with the judge comes from length and requirement-format features, not from evidence of authorship.}
+\label{fig:claude-label-classifiers}
+\end{figure}
+
+Trained on the human labels instead, the classifiers learned no usable signal (Figure~\ref{fig:human-label-metrics}). With 16--33 held-out specifications per split, every AUC interval was wide and most included 0.5, and Naive Bayes predicted AI-assisted for every test file. At this scale the human labels support evaluation, not training.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{run-human-all/model_metric_comparison.pdf}
+\caption{Classifiers trained on all human labels (blind and informed), scored on 33 held-out specifications (14 labeled not AI-assisted, 19 AI-assisted). Points are point estimates with 95\% bootstrap intervals; ``Uniform 50/50'' is a random-guess baseline. Naive Bayes reaches a recall of 1.0 by labeling every test file AI-assisted, and every model's ROC AUC interval is wide.}
+\label{fig:human-label-metrics}
+\end{figure}
 
 \section{Discussion}
 \subsection{Key Findings and Trade-offs}
